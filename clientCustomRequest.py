@@ -38,7 +38,25 @@ def createRequestFromQuery():
     pass
 
 def convertor(input):
-      pass
+    number = int(input[:-2])
+    unit = input[-2:]
+    try:
+        match unit:
+            case "B":
+                return number
+            case "KB":
+                return number * 1000
+            case "MB":
+                return number * 1000000
+            case "GB":
+                return number * 1000000000
+            case "TB":
+                return number * 1000000000000
+            case _:
+                exit("Unsupported unit. See -h for correct usage")
+    except:
+        return number
+
 
 def execute(xmlRequest, USER, PASSWORD, URL):
 
@@ -78,7 +96,7 @@ if PATH != "-h":
                 exit("Bad argument for type. See -h for correct usage")
         case "-edit":
             try:
-                query = filterLastEdited(USER, argv[3], argv[4], PATH)
+                query = filterLastEdited(USER, convertor(argv[3]), convertor(argv[4]), PATH)
             except:
                 exit("Bad argument for edit. See -h for correct usage")
         case "-size":
