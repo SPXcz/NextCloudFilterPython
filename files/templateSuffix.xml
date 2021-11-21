@@ -5,6 +5,7 @@
             <d:prop>
                 <oc:fileid/>
                 <d:displayname/>
+                <oc:size/>
                 <d:getcontenttype/>
                 <oc:permissions/>
                 <d:getlastmodified/>

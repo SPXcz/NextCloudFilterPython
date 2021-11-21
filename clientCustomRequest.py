@@ -7,7 +7,6 @@ from urllib.parse import unquote
 def filterName(name, username, path="/"):
     with open("files/templateUser.xml", "r") as fr:
         request = fr.read().format(xmlUsername = username, xmlName = name, xmlPath = path)
-    print(request)
     return request
 
 
@@ -24,38 +23,53 @@ def filterLastEdited(username, after, before=datetime.now(timezone.utc).astimezo
 def filterPermissions(username, permissionString, path="/"):
     with open("files/templatePrivilege.xml", "r") as fr:
         request = fr.read().format(xmlUsername = username, xmlPath = path, xmlPermissions = permissionString)
-    print(request)
     return request
 
 #In bytes, max. 10 000 petabytes
 def filterSize(username, minSize, maxSize, path="/"):
     with open("files/templateSize.xml", "r") as fr:
         request = fr.read().format(xmlUsername = username, xmlPath = path, xmlFrom = minSize, xmlTo = maxSize)
-    print(request)
     return request
 
 def createRequestFromQuery():
     pass
 
+def dateMaker(input, xmlFrom):
+    year, month, day = input.split("-")
+
+    if xmlFrom:
+        return datetime(int(year), int(month), int(day))
+    else:
+        return datetime(int(year), int(month), int(day), 23, 59, 59)
+
+def reverseConvertor(input):
+    input = float(input)
+    units = ["B", "KB", "MB", "GB", "TB"]
+    
+    count = 0
+    while input // 1000 > 1:
+        input = input // 1000
+        count += 1
+    return str(round(input, 2)) + units[count]
+    
+
 def convertor(input):
-    number = int(input[:-2])
+    number = input[:-2]
     unit = input[-2:]
     try:
         match unit:
-            case "B":
-                return number
             case "KB":
-                return number * 1000
+                return int(number) * 1000
             case "MB":
-                return number * 1000000
+                return int(number) * 1000000
             case "GB":
-                return number * 1000000000
+                return int(number) * 1000000000
             case "TB":
-                return number * 1000000000000
+                return int(number) * 1000000000000
             case _:
-                exit("Unsupported unit. See -h for correct usage")
+                return int(input)
     except:
-        return number
+        exit("Unsupported unit. See -h for correct usage")
 
 
 def execute(xmlRequest, USER, PASSWORD, URL):
@@ -72,11 +86,12 @@ def execute(xmlRequest, USER, PASSWORD, URL):
 
     tree = ET.fromstring(r.content)
     for ele in tree:
-        for id, att, contenttype, permissions, lastmodified in zip(
+        for id, att, size, contenttype, permissions, lastmodified in zip(
         ele.find("{DAV:}propstat/{DAV:}prop").findall("{http://owncloud.org/ns}fileid"), ele.findall("{DAV:}href"), 
+        ele.find("{DAV:}propstat/{DAV:}prop").findall("{http://owncloud.org/ns}size"),
         ele.find("{DAV:}propstat/{DAV:}prop").findall("{DAV:}getcontenttype"), ele.find("{DAV:}propstat/{DAV:}prop").findall("{http://owncloud.org/ns}permissions"),
         ele.find("{DAV:}propstat/{DAV:}prop").findall("{DAV:}getlastmodified")):
-            print(id.text, unquote(att.text.split("/")[-1]), unquote(contenttype.text), permissions.text, "", lastmodified.text, sep="\t")
+            print(id.text, reverseConvertor(size.text), unquote(contenttype.text), permissions.text, "", lastmodified.text, unquote(att.text.split("/")[-1]), sep="\t")
 
 
 #Main begins here
@@ -96,18 +111,18 @@ if PATH != "-h":
                 exit("Bad argument for type. See -h for correct usage")
         case "-edit":
             try:
-                query = filterLastEdited(USER, convertor(argv[3]), convertor(argv[4]), PATH)
+                query = filterLastEdited(USER, dateMaker(argv[3], True), dateMaker(argv[4], False), PATH)
             except:
                 exit("Bad argument for edit. See -h for correct usage")
         case "-size":
             try:
-                query = filterSize(USER, argv[3], argv[4], PATH)
+                query = filterSize(USER, convertor(argv[3]), convertor(argv[4]), PATH)
             except:
-                exit("Bad argument for edit. See -h for correct usage")
+                exit("Bad argument for size. See -h for correct usage")
         case _:
             exit("Non existing filtering mode. View -h for correct usage")
-    print("ID", "FILE NAME", "CONTENT TYPE", "PERMISSIONS", "LAST MODIFIED", sep="\t")
-    print("---------------------------------------------------------------------")
+    print("ID", "SIZE", "CONTENT TYPE", "PERMISSIONS", "LAST MODIFIED", "\t", "FILE NAME", sep="\t")
+    print("-------------------------------------------------------------------------------------------")
     execute(query, USER, PASSWORD, URL)
 else:
     print("SIMPLE PYTHON NEXTCLOUD WEBDAV CLIENT")
@@ -122,12 +137,7 @@ else:
     print("     [-type] - Filter by type of file. For example 'image' or 'text'. List of file types is defined on NextCloud server.")
     print("         This option requires additional argument [SUBJECT]")
     print("     [-edit] - Filter by last date of editation of files in a folder.")
-    print("         This option requires two additional arguments [FROM] [TO] of a type 'date'")
+    print("         This option requires two additional arguments [FROM] [TO] of a type 'date'. Use YYYY-MM-DD")
     print("     [-size] - Filter by the size of files in a folder.")
-    print("         This option requires two additional arguments [FROM] [TO] of a type 'data size'. No unit means the size is in bytes. You can also write the with a unit - eg. '10GB'")
-
-#query = filterName(USER, "nextCloudUser", "/testFolder")
-#query = filterSuffix("image", USER, "/testFolder")
-#query = filterLastEdited(USER, datetime(2021, 11, 19), datetime(2021, 11, 21), "/testFolder")
-#query = filterPermissions(USER, "G", "/testFolder")
-#query = filterSize(USER, 600, 10000000000, "/testFolder")
+    print("         This option requires two additional arguments [FROM] [TO] of a type 'data size'. No unit means the size is in bytes. You can also write the with a unit - eg. '10GB'.")
+    print("         Bytes must be written without any unit!")
