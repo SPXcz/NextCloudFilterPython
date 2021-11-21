@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<d:searchrequest xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">
+    <d:basicsearch>
+        <d:select>
+            <d:prop>
+                <d:displayname/>
+            </d:prop>
+        </d:select>
+        <d:from>
+            <d:scope>
+                <d:href>/files/nextCloudUser/testFolder</d:href>
+                <d:depth>infinity</d:depth>
+            </d:scope>
+        </d:from>
+        <d:where>
+            <d:like>
+                <d:prop>
+                    <d:getcontenttype/>
+                </d:prop>
+                <d:literal>image/jpeg</d:literal>
+            </d:like>
+        </d:where>
+        <d:orderby>
+            <d:prop>
+                <oc:size/>
+            </d:prop>
+            <d:ascending/>
+        </d:orderby>
+    </d:basicsearch>
+</d:searchrequest>

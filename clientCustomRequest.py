@@ -1,5 +1,3 @@
-from re import match
-from typing import Match
 import xml.etree.ElementTree as ET
 import requests
 from datetime import datetime, timezone
@@ -7,49 +5,50 @@ from sys import argv, exit
 from urllib.parse import unquote
 
 def filterName(name, username, path="/"):
-    with open("templateUser.xml", "r") as fr:
+    with open("files/templateUser.xml", "r") as fr:
         request = fr.read().format(xmlUsername = username, xmlName = name, xmlPath = path)
     print(request)
     return request
 
 
 def filterSuffix(suffix, username, path="/"):
-    with open("templateSuffix.xml", "r") as fr:
+    with open("files/templateSuffix.xml", "r") as fr:
         request = fr.read().format(xmlUsername = username, xmlSuffix = suffix, xmlPath = path)
     return request
 
 def filterLastEdited(username, after, before=datetime.now(timezone.utc).astimezone(), path="/"):
-    with open("templateEdit.xml", "r") as fr:
+    with open("files/templateEdit.xml", "r") as fr:
         request = fr.read().format(xmlUsername = username, xmlPath = path, xmlFrom = after.astimezone().isoformat(), xmlTo = before.astimezone().isoformat())
     return request
 
 def filterPermissions(username, permissionString, path="/"):
-    with open("templatePrivilege.xml", "r") as fr:
+    with open("files/templatePrivilege.xml", "r") as fr:
         request = fr.read().format(xmlUsername = username, xmlPath = path, xmlPermissions = permissionString)
     print(request)
     return request
 
 #In bytes, max. 10 000 petabytes
 def filterSize(username, minSize, maxSize, path="/"):
-    with open("templateSize.xml", "r") as fr:
+    with open("files/templateSize.xml", "r") as fr:
         request = fr.read().format(xmlUsername = username, xmlPath = path, xmlFrom = minSize, xmlTo = maxSize)
     print(request)
     return request
 
 def createRequestFromQuery():
     pass
-    
+
+def convertor(input):
+      pass
 
 def execute(xmlRequest, USER, PASSWORD, URL):
 
     header = {"content-Type": "text/xml"}
 
-    with open("requestTest.xml", "r") as fr:
-        r = requests.api.request("SEARCH",
-        URL,
-        data=xmlRequest, 
-        headers=header, 
-        auth=requests.auth.HTTPBasicAuth(USER, PASSWORD))
+    r = requests.api.request("SEARCH",
+    URL,
+    data=xmlRequest, 
+    headers=header, 
+    auth=requests.auth.HTTPBasicAuth(USER, PASSWORD))
     if r.status_code >= 400:
         exit("Finished with code", r.status_code)
 
@@ -59,12 +58,12 @@ def execute(xmlRequest, USER, PASSWORD, URL):
         ele.find("{DAV:}propstat/{DAV:}prop").findall("{http://owncloud.org/ns}fileid"), ele.findall("{DAV:}href"), 
         ele.find("{DAV:}propstat/{DAV:}prop").findall("{DAV:}getcontenttype"), ele.find("{DAV:}propstat/{DAV:}prop").findall("{http://owncloud.org/ns}permissions"),
         ele.find("{DAV:}propstat/{DAV:}prop").findall("{DAV:}getlastmodified")):
-            print(id.text, unquote(att.text.split("/")[-1]), unquote(contenttype.text), permissions.text, lastmodified.text, sep="\t")
+            print(id.text, unquote(att.text.split("/")[-1]), unquote(contenttype.text), permissions.text, "", lastmodified.text, sep="\t")
 
 
 #Main begins here
 
-with open("login.txt", "r") as fr:
+with open("files/login.txt", "r") as fr:
     USER = fr.readline().split("\n")[0]
     PASSWORD = fr.readline().split("\n")[0]
     URL = fr.readline()
@@ -90,7 +89,7 @@ if PATH != "-h":
         case _:
             exit("Non existing filtering mode. View -h for correct usage")
     print("ID", "FILE NAME", "CONTENT TYPE", "PERMISSIONS", "LAST MODIFIED", sep="\t")
-    print("---------------------------------------------------------------")
+    print("---------------------------------------------------------------------")
     execute(query, USER, PASSWORD, URL)
 else:
     print("SIMPLE PYTHON NEXTCLOUD WEBDAV CLIENT")
