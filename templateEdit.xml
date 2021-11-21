@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<d:searchrequest xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns">
+    <d:basicsearch>
+        <d:select>
+            <d:prop>
+                <oc:fileid/>
+                <d:displayname/>
+                <d:getcontenttype/>
+                <oc:permissions/>
+                <d:getlastmodified/>
+            </d:prop>
+        </d:select>
+        <d:from>
+            <d:scope>
+                <d:href>/files/{xmlUsername}{xmlPath}</d:href>
+                <d:depth>infinity</d:depth>
+            </d:scope>
+        </d:from>
+        <d:where>
+            <d:and>
+                <d:gte>
+                    <d:prop>
+                        <d:getlastmodified/>
+                    </d:prop>
+                    <d:literal>{xmlFrom}</d:literal>
+                </d:gte>
+                <d:lte>
+                    <d:prop>
+                        <d:getlastmodified/>
+                    </d:prop>
+                    <d:literal>{xmlTo}</d:literal>
+                </d:lte>
+            </d:and>
+        </d:where>
+        <d:orderby>
+            <d:prop>
+                <d:displayname/>
+            </d:prop>
+            <d:ascending/>
+        </d:orderby>
+    </d:basicsearch>
+</d:searchrequest>
